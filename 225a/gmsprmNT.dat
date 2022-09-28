@@ -1,8 +1,0 @@
-Restart=mdl
-Input=scen
-ScrDir=225a
-SysDir=C:\GAMS\34
-ScriptNext=225a\gamsnext.cmd
---region=USA
---co2p=50
---scc=200
