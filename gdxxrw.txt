@@ -1,0 +1,2 @@
+par=macro	rng=macro!a2    cdim=0 intastext=n
+par=sector	rng=sector!a2	cdim=0 intastext=n

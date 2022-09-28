@@ -209,8 +209,11 @@ macro("Leakage","all",r,sc)	    = summary("abs","Leakage","all",r,sc);
 macro("Leakage","all","all",sc)	    = summary("abs","Leakage","all","all",sc);
 macro("Employment","EITE",r,sc)	    = quants("pct","lab","EITE",r,sc);
 macro("Employment","non-EITE",r,sc) = quants("pct","lab","non-EITE",r,sc);
-macro("eb(bn$)","all",r,sc)$rcalc(r)    = %scc%*(summary("abs","Emissions","all",r,"BMK") - summary("abs","Emissions","all",r,sc))/pnum(r);	
-macro("netwelf","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,"bmk") - (summary("abs","welfare","all",r,sc)+ macro("eb(bn$)","all",r,sc)))/
+macro("eb(bn$)","all",r,sc)$rcalc(r)    = %scc%*(summary("abs","Emissions","all",r,"BMK") - summary("abs","Emissions","all",r,sc))/pnum(r);
+macro("eb(bn$)_global","all",r,sc)$rcalc(r)    = %scc%*(summary("abs","Emissions","all","all","BMK") - summary("abs","Emissions","all","all",sc))/pnum(r);	
+macro("netwelf","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,"bmk") - summary("abs","welfare","all",r,sc)+ macro("eb(bn$)","all",r,sc))/
+						summary("abs","welfare","all",r,"bmk"));
+macro("netwelf_globalscc","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,"bmk") - summary("abs","welfare","all",r,sc)+ macro("eb(bn$)_global","all",r,sc))/
 						summary("abs","welfare","all",r,"bmk"));
 display macro, sector;
 
