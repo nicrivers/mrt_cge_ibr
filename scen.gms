@@ -18,7 +18,7 @@ In our analysis we investigate the following rebating schemes
 
 We report changes in key indicators as compared to a benchmark situation
 where no abatement policy is in place (but we could also shift to reporting
-changes directly vis-à-vis the reference scenario with lump-sum recycling.
+changes directly vis-ï¿½-vis the reference scenario with lump-sum recycling.
 $offtext
 
 *	Select the unilaterally abating region
@@ -30,7 +30,7 @@ set	rcalc(r)	Region with emissions abatement policy /%region%/;
 $if not set co2p	$set co2p 0
 
 *	Select the social cost of carbon
-$if not set scc		$set ssc 0
+$if not set scc		$set scc 0
 
 *	Optional flag to assess a short-horizon variant where we treat capital
 *	in EITE sectors as sector specific (for the case: $set ssk yes)
@@ -209,7 +209,7 @@ macro("Leakage","all",r,sc)	    = summary("abs","Leakage","all",r,sc);
 macro("Leakage","all","all",sc)	    = summary("abs","Leakage","all","all",sc);
 macro("Employment","EITE",r,sc)	    = quants("pct","lab","EITE",r,sc);
 macro("Employment","non-EITE",r,sc) = quants("pct","lab","non-EITE",r,sc);
-macro("eb(bn$)","all",r,sc)$rcalc(r)    = %ssc%*(summary("abs","Emissions","all",r,"BMK") - summary("abs","Emissions","all",r,sc))/pnum(r);	
+macro("eb(bn$)","all",r,sc)$rcalc(r)    = %scc%*(summary("abs","Emissions","all",r,"BMK") - summary("abs","Emissions","all",r,sc))/pnum(r);	
 macro("netwelf","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,"bmk") - (summary("abs","welfare","all",r,sc)+ macro("eb(bn$)","all",r,sc)))/
 						summary("abs","welfare","all",r,"bmk"));
 display macro, sector;
