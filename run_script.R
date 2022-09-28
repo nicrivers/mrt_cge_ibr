@@ -9,8 +9,8 @@ system("gams model s=mdl --tax=yes")
 dat <- tibble()
 
 # Loop over carbon tax and scc rates
-for (co2p in seq(0,100,by=50)) {
-  for (scc in seq(50,250,by=100)) {
+for (co2p in c(0,25,50,75,100,150,200,250)) {
+  for (scc in c(50,100,150,200,250)) {
     
     # Execute the model
     system(paste0("gams scen r=mdl --region=USA --co2p=",co2p," --scc=",scc))
@@ -36,11 +36,11 @@ net_welfare <- dat %>%
 leakage <- dat %>% 
   filter(item == "Leakage", region == "all") %>%
   dplyr::select(policy, lk=value, co2p, scc)
-pd <- inner_join(net_welfare, leakage)
+pd <- inner_join(net_welfare, leakage) 
 
-ggplot(pd, aes(x=lk, y=nw, shape=policy, colour=scc)) +
-  geom_point() +
-  geom_line()
+ggplot(pd, aes(x=lk, y=nw, shape=policy, colour=scc, label=co2p, group=interaction(policy,scc))) +
+  geom_line() +
+  geom_point() 
 
-ggplot(pd %>% filter(policy == "LSR"), aes(x=scc, y=co2p, fill=nw)) +
-  geom_raster()
+ggplot(pd %>% filter(policy == "LSR"), aes(x=scc, y=co2p, fill=lk)) +
+  geom_tile()
