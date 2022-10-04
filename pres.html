@@ -7,7 +7,7 @@
 <link href="pres_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="pres_files/libs/quarto-html/quarto-html.min.css" rel="stylesheet" data-mode="light">
 <link href="pres_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.0.36">
+  <meta name="generator" content="quarto-1.1.189">
 
   <meta name="author" content="Nic Rivers">
   <title>Exploring IBR-MRT output</title>
@@ -19,10 +19,15 @@
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
   </style>
   <link rel="stylesheet" href="pres_files/libs/revealjs/dist/theme/quarto.css" id="theme">
   <link href="pres_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
@@ -337,10 +342,63 @@
 <li>they want to maintain the competitiveness of domestic industry</li>
 </ul>
 </section>
-<section id="output-1" class="slide level2">
-<h2>Output 1</h2>
+<section id="model-set-up" class="slide level2">
+<h2>Model set up</h2>
+<ul>
+<li>We analyze using a multi-region CGE model.</li>
+<li>One region unilaterally implements a carbon price. Other regions do not.</li>
+<li>We consider alternative forms of rebating carbon pricing revenues.</li>
+<li>We consider carbon prices that differ from the <em>social cost of carbon</em>.</li>
+<li>We analyze both welfare in the implementing region as well as carbon leakage.</li>
+</ul>
+<div class="cell">
 
-<img data-src="pres_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"><div class="footer footer-default">
+</div>
+</section>
+<section id="simulation-1---carbon-price-in-usa-is-set-at-scc-100t" class="slide level2">
+<h2>Simulation #1 - carbon price in USA is set at SCC ($100/t)</h2>
+<p>Output-based rebating and lump sum rebating produce largest welfare gains.</p>
+
+<img data-src="pres_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"><p><font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font></p>
+</section>
+<section id="simulation-2---carbon-price-in-usa-25t-is-set-below-scc-250t" class="slide level2">
+<h2>Simulation #2 - carbon price in USA ($25/t) is set below SCC ($250/t)</h2>
+<p>Policies that rebate to reward emission reduction achieve welfare gains.</p>
+
+<img data-src="pres_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"><p><font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font></p>
+</section>
+<section id="comparing-ibor-to-obr" class="slide level2">
+<h2>Comparing IBOR to OBR</h2>
+<p>If carbon price is set sufficiently below SCC, IBOR achieves higher welfare than OBR.</p>
+
+<img data-src="pres_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"><p><font size="1"> Figure shows difference in net welfare in the implementing region under IBR minus net welfare under IBOR. Net welfare includes welfare gains from reduced emissions at the (global) social cost of carbon.</font></p>
+</section>
+<section id="emissions-leakage" class="slide level2">
+<h2>Emissions leakage</h2>
+<p>Output-based rebates have lowest emission leakage</p>
+
+<img data-src="pres_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"><p><font size="1"> Figure shows international emission leakage following USA implementation of carbon price at level indicated in figure using different rebating mechanisms for EITE sectors.</font></p>
+</section>
+<section id="employment" class="slide level2">
+<h2>Employment</h2>
+<p>Intensity-based policies have lowest impact on employment.</p>
+
+<img data-src="pres_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<section id="a-theoretical-model" class="slide level2">
+<h2>A theoretical model</h2>
+<p>It would be useful to have a theoretical model to explore these results. Desirable model characteristics:</p>
+<p><font size="5"></font></p><font size="5">
+<ul>
+<li>General equilibrium model</li>
+<li>Home and foreign producers both represented</li>
+<li>EITE and non-EITE sectors both represented. EITE sector is traded, non-EITE sector is non-traded. Both sectors use labour and emissions to produce output.</li>
+<li>Consumers in each region consume EITE goods, non-EITE goods, government services, and labour.</li>
+<li>Government gets revenue from emission tax, income (labour) tax, EITE output tax. Reforms are budget neutral.</li>
+<li>Emission tax can differ from social cost of carbon.</li>
+<li>Derive welfare change/leakage/employment in home associated with carbon price and different rebating options.</li>
+</ul>
+</font><p><font size="5"></font></p>
+<div class="footer footer-default">
 
 </div>
 </section>
@@ -665,7 +723,8 @@
       for (var i=0; i<noterefs.length; i++) {
         const ref = noterefs[i];
         tippyHover(ref, function() {
-          let href = ref.getAttribute('href');
+          // use id or data attribute instead here
+          let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
           try { href = new URL(href).hash; } catch {}
           const id = href.replace(/^#\/?/, "");
           const note = window.document.getElementById(id);
