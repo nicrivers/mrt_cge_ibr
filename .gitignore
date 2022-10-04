@@ -2,4 +2,5 @@
 *.lst
 *.gen
 *.g0*
-22*\*
+22*/*
+pres_files/*
