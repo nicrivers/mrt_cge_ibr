@@ -3,6 +3,7 @@ title: "Exploring IBR-MRT output"
 author: "Nic Rivers"
 format: revealjs
 editor: visual
+self-contained: true
 ---
 
 ## Set-up
@@ -25,7 +26,6 @@ With unilateral implementation of a carbon price, policy makers face competing p
 -   We consider alternative forms of rebating carbon pricing revenues.
 -   We consider carbon prices that differ from the *social cost of carbon*.
 -   We analyze both welfare in the implementing region as well as carbon leakage.
-
 
 ```{r}
 library(tidyverse)
@@ -52,10 +52,9 @@ pd <- pd %>%
          rebate = factor(rebate, levels = c("LS", "O", "A", "IO", "IE")))
 ```
 
-## Simulation #1 - carbon price in USA is set at SCC ($100/t)
+## Simulation #1 - carbon price in USA is set at SCC (\$100/t)
 
 Output-based rebating and lump sum rebating produce largest welfare gains.
-
 
 ```{r}
 ggplot(pd %>% filter(scc == 100, co2p == 100), aes(x=rebate, y=nw)) +
@@ -64,9 +63,11 @@ ggplot(pd %>% filter(scc == 100, co2p == 100), aes(x=rebate, y=nw)) +
   labs(x="Rebating mechanism",
        y="Net welfare (%EV)")
 ```
-<font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font> 
 
-## Simulation #2 - carbon price in USA ($25/t) is set below SCC ($250/t)
+<font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font>
+
+## Simulation #2 - carbon price in USA (\$25/t) is set below SCC (\$250/t)
+
 Policies that rebate to reward emission reduction achieve welfare gains.
 
 ```{r}
@@ -76,10 +77,13 @@ ggplot(pd %>% filter(scc == 250, co2p == 25), aes(x=rebate, y=nw)) +
   labs(x="Rebating mechanism",
        y="Net welfare (%EV)")
 ```
-<font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font> 
+
+<font size="1"> Net welfare is Hicksian equivalent variation in income for the implementing region. It includes welfare gains from reduced emissions at the (global) social cost of carbon.</font>
 
 ## Comparing IBOR to OBR
+
 If carbon price is set sufficiently below SCC, IBOR achieves higher welfare than OBR.
+
 ```{r}
 pd %>% filter(rebate %in% c("O","IO")) %>% 
   group_by(scc, co2p) %>%
@@ -97,9 +101,11 @@ pd %>% filter(rebate %in% c("O","IO")) %>%
   annotate(geom="text",x=150, y=210, label="When CO2 price is\nset at SCC\nIBR dominates.") +
   annotate(geom="text",x=225, y=40, label="When CO2 price is\nset below SCC\nIBOR dominates.") 
 ```
+
 <font size="1"> Figure shows difference in net welfare in the implementing region under IBR minus net welfare under IBOR. Net welfare includes welfare gains from reduced emissions at the (global) social cost of carbon.</font>
 
 ## Emissions leakage
+
 Output-based rebates have lowest emission leakage
 
 ```{r}
@@ -110,9 +116,11 @@ ggplot(pd %>% filter(scc == 250, co2p %in% c(25, 250)), aes(x=reorder(rebate, -l
        y="Emissions leakage (%)") +
   geom_text(data=pd %>% filter(scc == 250, co2p %in% c(25, 250), rebate == "O"), aes(x=rebate, y=lk, label=paste0(co2p," $/t")), nudge_x = 0.25)
 ```
+
 <font size="1"> Figure shows international emission leakage following USA implementation of carbon price at level indicated in figure using different rebating mechanisms for EITE sectors.</font>
 
 ## Employment
+
 Intensity-based policies have lowest impact on employment.
 
 ```{r}
@@ -139,6 +147,7 @@ dat %>%
 ```
 
 ## A theoretical model
+
 It would be useful to have a theoretical model to explore these results. Desirable model characteristics:
 
 <font size="5">
