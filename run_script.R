@@ -9,8 +9,8 @@ system("gams model s=mdl --tax=yes")
 dat <- tibble()
 
 # Loop over carbon tax and scc rates
-for (co2p in seq(0,250,by=25)) {
-  for (scc in seq(0,250,by=25)) {
+for (co2p in seq(0,500,by=25)) {
+  for (scc in seq(0,500,by=25)) {
     
     # Execute the model
     system(paste0("gams scen r=mdl --region=USA --co2p=",co2p," --scc=",scc))

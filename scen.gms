@@ -203,6 +203,7 @@ sector("CO2 price($)","c",r,sc)        = prices("abs","PCO2","c",r,sc);
 macro(sitem,gp,r,sc)	    	    = summary("pct",sitem,gp,r,sc);
 macro(sitem,gp,r,sc)$(not sameas(sitem,"CO2 price")) = summary("pct",sitem,gp,r,sc);
 macro("welfare","all","all",sc)     = summary("pct","welfare","all","all",sc);
+macro("welfare$","all",r,sc)     = summary("abs","welfare","all",r,sc);
 macro("emissions","all","all",sc)   = summary("pct","emissions","all","all",sc);
 macro("CO2 price",gp,r,sc)	    = summary("abs","CO2 price",gp,r,sc);
 macro("Leakage","all",r,sc)	    = summary("abs","Leakage","all",r,sc);
@@ -215,6 +216,7 @@ macro("netwelf","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,sc)
 						summary("abs","welfare","all",r,"bmk"));
 macro("netwelf_globalscc","all",r,sc)$rcalc(r)	= 100*((summary("abs","welfare","all",r,sc) - summary("abs","welfare","all",r,"bmk")+ macro("eb(bn$)_global","all",r,sc))/
 						summary("abs","welfare","all",r,"bmk"));
+macro("emissions_abs","all",r,sc) = summary("abs","Emissions","all",r,sc)						;
 display macro, sector;
 
 execute_unload 'single.gdx' macro, sector;
