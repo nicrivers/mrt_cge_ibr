@@ -128,6 +128,29 @@ dat %>%
   scale_y_continuous(name = "Change in domestic welfare (%)")
 ggsave("figures/domestic_welfare.png", width=6, height=4)
 
+# Ranking table
+dat %>%
+  filter(item %in% c("CO2 price", "netwelf_globalscc"),
+         sector == "all",
+         region == "usa",
+         #scc == 250
+         ) %>%
+  filter(scc >= co2p) %>%
+  pivot_wider(names_from=item, values_from=value) %>% 
+  group_by(co2p, scc) %>% 
+  arrange(co2p, scc, desc(netwelf_globalscc)) %>% 
+  summarise(best = first(policy), 
+            second = nth(policy,2), 
+            third = nth(policy,3), 
+            fourth = nth(policy,4), 
+            fifth = nth(policy, 5)) %>%
+  ggplot(aes(x=scc, y=co2p, fill=best, label=best)) +
+  geom_raster() +
+  scale_fill_brewer(name="policy",palette = "Set1", drop=FALSE) +
+  theme_light() +
+  scale_x_continuous(name="Social cost of carbon", labels=scales::dollar_format(suffix="/t")) +
+  scale_y_continuous(name="Domestic carbon price", labels=scales::dollar_format(suffix="/t"))
+ggsave("figures/optimal_policy.png", width=6, height=4)
 
 # Leakage
 pd %>%
@@ -165,6 +188,23 @@ dat %>%
   scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
   scale_y_continuous(name = "Domestic emission reduction (%)")
 ggsave("figures/domestic_emissions.png", width=6, height=4)
+
+
+# Domestic emissions broken down to EITE vs. non-EITE
+dat %>%
+  filter(item %in% c("CO2 price", "Emissions"),
+         sector %in% c("EITE", "non-EITE"),
+         region == "usa",
+         scc == 250) %>%
+  pivot_wider(names_from=item, values_from=value) %>%
+  ggplot(aes(x=co2p, y=Emissions, colour=policy)) +
+  geom_line() +
+  theme_light() +
+  scale_color_brewer(palette = "Set1") +
+  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_y_continuous(name = "Domestic emission reduction (%)") +
+  facet_wrap(~sector)
+ggsave("figures/domestic_emissions_bysector.png", width=6, height=4)
 
 
 dat %>%
