@@ -245,13 +245,14 @@ pd %>% filter(policy %in% c("LS","O")) %>%
   scale_fill_fermenter()
 
 
-pd %>% filter(policy %in% c("LS","O")) %>% 
+pd %>% filter(policy %in% c("A","O")) %>% 
   group_by(region_implementing,scc, co2p) %>%
   # Only keep where scc >= co2p
   filter(scc >= co2p) %>%
   select(-lk) %>%
+  distinct() %>%
   pivot_wider(names_from = policy, values_from = nw) %>%
-  mutate(diff = LS-O) %>%
+  mutate(diff = A-O) %>%
   ggplot(aes(x=scc, y=co2p, z=diff)) +
   geom_raster(aes(fill=diff)) +
   scale_fill_gradient2(name="Welfare\nABR-OBR") +
@@ -260,7 +261,7 @@ pd %>% filter(policy %in% c("LS","O")) %>%
   facet_wrap(~region_implementing) +
   scale_x_continuous(name="Social cost of carbon", labels=scales::dollar_format(suffix="/t")) +
   scale_y_continuous(name="Domestic carbon price", labels=scales::dollar_format(suffix="/t")) +
-  annotate(geom="text", x=300,y=100, label="If SCC>>pCO2\nABR dominates") +
-  annotate(geom="text", x=300,y=250, label="If SCC<=pCO2\nOBR dominates") 
-ggsave("OBRvsABR.png", width=6, height=4)
+  annotate(geom="text", x=500,y=0, label="If SCC>>pCO2\nABR dominates", hjust=1, vjust=-0.5) +
+  annotate(geom="text", x=500,y=325, label="If SCC<=pCO2\nOBR dominates", hjust=1) 
+ggsave("figures/OBRvsABR.png", width=8, height=6)
                     
