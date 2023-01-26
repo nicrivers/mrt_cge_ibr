@@ -2,5 +2,8 @@
 *.lst
 *.gen
 *.g0*
+*.log*
+gdxxrw.txt
+*.lxi
 22*/*
 pres_files/*

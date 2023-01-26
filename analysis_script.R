@@ -90,7 +90,7 @@ decomp %>%
   scale_x_discrete(name=NULL, guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(name="Domestic welfare change (B$)", labels=scales::dollar_format()) +
   theme_light()
-ggsave("figures/welfare_decomp.png", width=6, height=4)  
+ggsave("figures/welfare_decomp.png", width=8, height=4)  
 
 # Net welfare
 net_welfare <- dat %>% 

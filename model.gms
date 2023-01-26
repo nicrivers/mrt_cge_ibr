@@ -563,3 +563,12 @@ par=bmk	  rng=bmk!a1 rdim=2 cdim=1
 $offecho
 *.execute 'gdxxrw i=bmk_%bmkregion%.gdx o=bmk_%bmkregion%.xlsx @gdxxrw.txt';
 
+parameter bmk_r benchmark regional data ;
+
+bmk_r(r,"gdp") = byr_gdp(r,"income") ;
+bmk_r(r,"ghg") = sum((i,g), eco2(i,g,r)) ;
+bmk_r(r,"ff_supply") = sum(xe, vom(xe,r)) ;
+bmk_r(r,"ff_export") = sum(xe, vxm(xe,r)) ;
+bmk_r(r,"ff_import") = sum(fe, vim(fe,r)) ;
+
+display bmk_r ;
