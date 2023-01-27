@@ -1,1 +1,5 @@
-par=bmk	  rng=bmk!a1 rdim=2 cdim=1
+par=co2rep	rng=co2rep!a1		cdim=1 rdim=2 intastext=n
+par=macro	rng=macro!a2		cdim=0 intastext=n
+par=tot		rng=tot!a2		cdim=0 intastext=n
+par=sector	rng=sector!a2		cdim=0 intastext=n
+par=diagnostics	rng=diagnostics!a2	cdim=0 intastext=n

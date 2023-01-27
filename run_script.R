@@ -14,7 +14,8 @@ for (co2p in seq(0,500,by=25)) {
     for (rg in c("USA","EUR")) {
     
     # Execute the model
-    system(paste0("gams scen r=mdl --region=", rg," --co2p=",co2p," --scc=",scc))
+      # Chris' new code (2023-01-26) requires ssa=no to produce "single.xlsx"
+    system(paste0("gams scen r=mdl --region=", rg," --co2p=",co2p," --scc=",scc, " --ssa=no"))
     
     # Load the data
     dat_scen <- read_excel("single.xlsx", sheet="macro", skip=1, col_names = c("item", "sector", "region", "policy", "value"))

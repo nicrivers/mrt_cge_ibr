@@ -1,8 +1,5 @@
 $STitle		GAMS Code for Reporting
 
-
-
-
 $ifthen.undefined not defined fmt
 
 parameter pnum(*)	Numeraire price index;
@@ -53,6 +50,7 @@ sets
 		PY	Composite output price
 		PE	Export price
 		PM	Import price 
+		PA	Armington price
 		PCO2	CO2 price
 		set.f	Factor price 
 		/,
@@ -79,8 +77,8 @@ parameters
         inc(fmt,*,*,*)		Income decomposition,
         quants(fmt,*,*,*,*)	Quantities (sector) at benchmark prices,
         prices(fmt,*,g,*,*)	Prices (sector),
-	summary(fmt,*,*,*,*)	Summary report of key indicators;
-
+	summary(fmt,*,*,*,*)	Summary report of key indicators,
+	transfers(*,*,*)	Compensating transfers;
 $endif.undefined
 
 gp(g) = yes; gp("all") = yes; gp("EITE") = yes; gp("non-EITE") = yes;
@@ -92,7 +90,6 @@ mapr(r,r) = yes;  mapr(r,"all") = yes;
 
 
 $ondotl
-*.pnum(r) = P.l("c",rnum);
 pnum(r)     = PD.l("c",r);
 pnum("all") = PD.l("c",rnum);
 
@@ -172,11 +169,13 @@ prices("abs","PD",g,r,%1)	= PD(g,r)/pnum(r);
 prices("abs","PE",g,r,%1)	= PE(g,r)/pnum(r);
 prices("abs","PY",g,r,%1)	= PY(g,r)/pnum(r);
 prices("abs","PM",i,r,%1)	= PM(i,r)/pnum(r);
+prices("abs","PA",i,r,%1)	= PA(i,r)/pnum(r);
 prices("abs",f,i,r,%1)$mf(f)	= PF(f,r)/pnum(r);
 prices("abs",f,i,r,%1)$sf(f)	= PS(f,i,r)/pnum(r);
 prices("abs","PCO2",g,r,%1)	= PCO2.l(g,r)/pnum(r);
 
-summary("abs",f,"all",r,%1)		   = prices("abs",f,"ROI",r,%1);
+$if %ds%==rebate_11s_6r_3f	summary("abs",f,"all",r,%1)		   = prices("abs",f,"ROI",r,%1);
+$if %ds%==emf36_gtap10		summary("abs",f,"all",r,%1)		   = prices("abs",f,"SER",r,%1);
 summary("abs","Welfare","all",r,%1)	   = RA(r)/pnum(r);
 summary("abs","Emissions","all",r,%1)	   = quants("abs","CO2","all",r,%1);
 summary("abs","Emissions","EITE",r,%1)	   = quants("abs","CO2","EITE",r,%1);	
@@ -196,4 +195,9 @@ summary("abs","Emissions","all","all",%1)  = sum(rrm,summary("abs","Emissions","
 summary("abs","Leakage","all",r,%1)$((not (sum(g, ttax(g,r)) or sum(g,rtax(g,r)))) and sum(rrm$(sum(g, ttax(g, rrm)) or sum(g, rtax(g,rrm))),co2_bmk(rrm) - sum(g, CO2(g,rrm))))
 					   = 100*(sum(g,CO2(g,r)) - co2_bmk(r))/sum(rrm$(sum(g, ttax(g,rrm)) or sum(g,rtax(g,rrm))),co2_bmk(rrm) - sum(g, CO2(g,rrm))); 
 summary("abs","Leakage","all","all",%1)    = sum(rrm, summary("abs","Leakage","all",rrm,%1));
+
+*.transfers("abs",r,%1)			  = sum(s, TRNSF(s)*trnv(r,s)*PD("c",rnum))/pnum(r);
+transfers("abs",r,%1)			  = sum(s, TRNSF(s)*trnv(r,s)*PD("c",rnum));
+transfers("abs","all",%1)		  = sum(r, transfers("abs",r,%1));
+
 $offdotl

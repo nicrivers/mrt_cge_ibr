@@ -1,26 +1,35 @@
 $Title	 Multi-Region Trade (MRT) Model for Rebate Analysis Using GTAP data
 
 *	Checks
-*	1. Choice of fossil fuel supply elasticity [etar(xe)  = 1;]  versus [etar("col",r) = 4; etar("gas",r) = 1; etar("cru",r) = 1;] 
-*	2. Sectors that are eligible for rebate (EIT  -- incl/excl OIL versus ELE)
+*	1. Choice of fossil fuel supply elasticity [etar("col",r) = 4; etar("gas",r) = 1; etar("cru",r) = 1;] 
+*	2. Sectors that are eligible for rebate (EITE goods  -- incl/excl OIL versus ELE)
 *	3. Alignment of KLEM substitution elasticities in the power sector
-*	4. In reporting we need to update/adjust GDP and INC accounting for potential tax/subsidy payments
-*
+*	4. In reporting we need to update/adjust some GDP and INC accounting for potential tax/subsidy payments
 
-set dummy /EITE, non-EITE, 'CO2 price', PCO2,Output, Emissions, Intensity, IUP, Unemploy, LSR, OBR, ABR, IBOR, IBER
+*	We move sensitivity analysis for elasticites 
+*	- fuel supply elasticities (etar)
+*	- KLEM substitution elasticities for power generation (esubele)
+*	- Armington trade elasticities for EITE goods 		
+*	into scen.gms so we do not have to benchmark the model again and can easily use the routine ssa.gms
+*	to generate the cross-product of sensitivy analysis runs.
+*	Note that we would have to re-assign elasticities in model.gms and recalibrate explicitly if we did
+*	a presolve with setting all initial taxes to zero.
+
+
+set dummy Dummy set for ordering some labels used in reporting of results (labels show up in chronologcial order) 
+	  /'Emission(%)','Leakage(%)','ELEprice(%)','CO2price($/tCO2)',
+	   all,usa,eur,chn,ind,og20,row,
+	   EITE, non-EITE, 'CO2 price', PCO2,Output, Emissions, Intensity, IUP, Unemploy, LSR, OBR, ABR, IBOR, IBER
 	   oil, gas, col, cru, roi, ppp, nmm, i_s, nfm, ele, chm, c, g, i, 
 	   Y, D, X, M, CO2, Int, Lhi, Llo, Lab, Cap /;	
-
-*	Flag for presolving the model towards a benchmark equilibrium without any intial taxes/subsidies
-$if not set tax	$set tax yes
-
 
 *	Adopt system setting for directory seperator (e.g. "\") which is used in path assignments
 $set fs %system.dirsep% 
 
 *	Select the dataset
 $if not set ds	$set ds rebate_11s_6r_3f
-*.$if not set ds	$set ds	rebate_11s_G20_3f
+*.$if not set ds $set ds rebate_11s_G20_3f
+*.$if not set ds $set ds emf36_gtap10
 
 *	Set the data directory
 $set datadir data\
@@ -28,13 +37,29 @@ $set datadir data\
 *	Invoke the "gtapdata.gms" routine which reads the dataset
 $include gtapdata
 
-*	Assign base-year taxes to rto0 to distinguish benchmark tax rates used
-*	for model calibration (rto0) from tax rates (rto) which might be changed
-*	in counterfactual policy simulations
+
+*	Include a switch which allows us to compute a no-tax benchmark equilibrium without any
+*	initial taxes -- this no-tax benchmark equilibrium can serve as a handshake to theory/analytical
+*	models as a first-best reference equilibrium 	 
+*	By default we run all simulations based on empirical data with taxes so we obtain more "realistic"
+*	policy counterfactuals
+$if not set tax	$set tax yes
+
+*	Optional flag to assess a short-horizon variant where we treat capital
+*	in EITE sectors as sector specific (for the case: $set ssk yes)
+*	By default we assume that capital is mobile across all sectors 
+*	(N.B.: Except for capital in fossil fuel primary sectors where we treat
+*	 capital inputs as sector-specific throughout to accommodate the calibraton
+*	 to exogenous fossil fuel supply elasticities)
+$set ssk no
+$if not set ssk	$set ssk no
+
+*	As with all other taxes, denote base-year production taxes/subsidies with rto0 (rather than rto)
+*	to distinguish benchmark tax rates used used for model calibration (rto0) from tax rates (rto)
 parameter rto0	Base-year output tax (subsidy) rates;
 rto0(g,r) = rto(g,r);
 
-*	Set deviation tolerance
+*	Set deviation tolerance for numerical precision of equilibrium conditions
 parameter objtol	Deviation tolerance (for IO accounting in bn USD)  /1e-3/;
 
 *	Check GDP accounting:
@@ -74,11 +99,9 @@ parameters
 	esubr(g,r)	Substitution elasticity between specific energy resource and other inputs,
 	thetar(g,r)	Resource value share,
 	etar(g,r)	Exogenous fossil fuel supply elasticites;
-
 esubr(g,r)    = 0;
-etar("col",r) = 4; 
-etar("gas",r) = 1; 
-etar("cru",r) = 1; 
+*	Default fossil fuel supply elasticities are as follows:
+etar("col",r) = 4; etar("gas",r) = 1; etar("cru",r) = 1; 
 
 *	KLEM nesting of production inputs
 parameters
@@ -98,13 +121,16 @@ loop(g$(not leontief(g)),
 	esub_e(g,r)	  = 0.5;
 	esub_kl_e(g,r)	  = 0.5;
 	esub_kle_m(g,r)	  = 0.5;
-	esub_m(g,r)	  = 0;
+	esub_m(g,r)	  = 0.25;
      );
+
+*	In final consumption we set the cross-price elasticity between non-energy commodities to 0.5
+esub_m("c",r)	  = 0.5;
 
 *	We increase the CO2 substitution elasticities in the power sector to mimic 
 *	easier/cheaper interfuel substitution and RES-E (as well as nuclear) penetration
-esub_e("ele",r)	   = 2;
-esub_kl_e("ele",r) = 1;
+esub_e("ele",r) = 1; esub_kl_e("ele",r) = 0.5;
+
 
 display esubm, esubd;
 *	The GTAP dataset features unrealistically high intra-import elasticity of substution for gas (esubm(gas) = 32.579)
@@ -119,7 +145,7 @@ oil 2.100,     gas 6.438,     col  3.050,    cru 5.200,		ele 2.800
 $offtext
 
 esubm("gas") = esubm("col");
-esubd("gas") = esubm("col");
+esubd("gas") = esubd("col");
 
 parameter resstat(xe,r,*)	Base-year statistics on energy resource sectors;
 
@@ -190,8 +216,10 @@ ibr(r)	    = no;
 bcr(r)	    = no;
 
 set	eite(g)	Set of emission-intensive and trade-exposed sectors /
-$if %ds%==rebate_11s_G20_3f	oil,i_s,nfm,nmm,ppp,chm
 $if %ds%==rebate_11s_6r_3f	oil,i_s,nfm,nmm,ppp,chm
+$if %ds%==rebate_11s_G20_3f	oil,i_s,nfm,nmm,ppp,chm
+$if %ds%==emf36_gtap10		EIT
+
 /;
 
 
@@ -199,6 +227,28 @@ parameter	ks0(f,g,r)	Sector-specific capital endowments;
 
 ks0(sf,g,r) = vfm(sf,g,r);
 
+parameter	esub_summary	Summary of KLEM and trade elasticities;
+esub_summary(r,g,"kle_m")   = esub_kle_m(g,r); 
+esub_summary(r,g,"kl_e")    = esub_kl_e(g,r);  
+esub_summary(r,g,"k_l")     = esub_k_l(g,r);	 	    
+esub_summary(r,g,"e")       = esub_e(g,r);	
+esub_summary(r,g,"m")       = esub_m(g,r);
+esub_summary(r,g,"etadx")   = etadx(g);
+esub_summary(r,i,"esubm")   = esubm(i);
+esub_summary(r,i,"esubdm")  = esubd(i);
+esub_summary(r,i,"etar")    = etar(i,r);
+
+option esub_summary:1:2:1;
+
+display esub_summary;
+
+parameters	
+	trnv(r,s)	Compensating transfer,
+	ctrg(r)		Target welfare level for compensating transfers,
+	ptarget(xe,r)	Target price for international (export) fuel prices;
+trnv(r,s) = 0;
+ctrg(r)	  = 1;
+ptarget(xe,r) = 1
 
 $ontext
 $model:gtap
@@ -228,10 +278,12 @@ $consumers:
 	RA(r)				! Representative agent
 
 $auxiliary:
-	PHI(r)$ptgt(r)			! Rationing of CO2 budget to hit exogenous CO2 price
-	RHO(g,r)			! Tax on emission inputs
-	PSI(g,r)			! Subsidy on production output
-	TAU$glbtgt			! Rationing of emission budget for leakage compensation
+	PHI(r)$ptgt(r)                  ! Rationing of CO2 budget to hit exogenous CO2 price
+	RHO(g,r)                        ! Tax on emission inputs
+	PSI(g,r)                        ! Subsidy on production output
+	TAU$glbtgt                      ! Rationing of emission budget for leakage compensation
+	TRNSF(r)                        ! Compensating transfer
+	RS(xe,r)$ks0("res",xe,r)	! Regional energy resource supply
 
 *	Transformation of output into domestic and export supply
 $prod:DX(g,r)$vom(g,r)	t:etadx(g) 
@@ -292,9 +344,11 @@ $demand:RA(r)  s:0
 	e:PD("i",r)                             q:(-vom("i",r))
 	e:PD("i",rnum)                          q:vb(r)
 	e:PF(mf,r)                              q:evom(mf,r)
-	e:PS(sf,g,r)                            q:ks0(sf,g,r)
+	e:PS(sf,g,r)$(not xe(g))                q:ks0(sf,g,r)		
+	e:PS("res",xe,r)                        q:ks0("res",xe,r)	r:rs(xe,r)
 	e:PCO2R(r)$((sum(g, rtax(g,r))))	q:co2limr(r)		r:PHI(r)$ptgt(r)	r:TAU$glbtgt
 	e:PCO2T$card(ttax)			q:co2limt(r)		r:PHI(r)$ptgt(r)	r:TAU$glbtgt	
+	e:PD("c",rnum)#(s)			q:trnv(r,s)		r:TRNSF(s)
 
 *	Targeting of exogenous CO2 price
 $constraint:PHI(r)$ptgt(r)
@@ -324,6 +378,15 @@ $constraint:RHO(g,r)$(bcr(r) and eite(g))
 *	Leakage-adjusted global emission target
 $constraint:TAU$glbtgt
 	glbtgt =e= sum(r, sum(g$co2q(g,r), CO2(g,r))); 
+
+*	Compensating transfers
+$constraint:TRNSF(r)
+	Y("c",r) =e= ctrg(r);
+
+*       Multiplicative scaling of fossil fuel resources to achieve a given world price for heterogeneous energy goods
+$constraint:RS(xe,r)$ks0("res",xe,r)
+	ptarget(xe,r)*PD("c",rnum) =e= PE(xe,r);
+
 
 $report:
 	v:V_AFM(i,g,r)$vafm(i,g,r)			i:PA(i,r)	prod:Y(g,r)
@@ -364,6 +427,12 @@ PHI.fx(r)   = 1;
 RHO.fx(g,r) = 0;
 PSI.fx(g,r) = 0;
 TAU.fx	    = 1;
+
+*	Set transfers to zero
+TRNSF.FX(r) = 0;
+
+*	By default there is no fuel price targeting
+RS.fx(xe,r) = 1;
 
 gtap.workspace = 1024;
 gtap.iterlim = 0;
@@ -441,6 +510,7 @@ co2_bmk(r) = sum(g, CO2.l(g,r));
 
 
 *	Report GDP and CO2 emissions to compare values in BMK with initial taxes versus BMK without initial taxes
+parameter totcalc Flag for calculus of ToT changes based on compensating transfers /0/;
 $batinclude report '"bmk"'
 parameter gdp_compare, co2_compare;;
 gdp_compare("expend","before",r)	       = gdp("abs","total","expend",r,"BMK");
@@ -449,6 +519,20 @@ co2_compare(fe,"before",r)$sum(g,vafm(fe,g,r)) = sum(g, (V_AFM.l(fe,g,r)/vafm(fe
 co2_compare("all","before",r)		       = sum(fe,co2_compare(fe,"before",r)); 
 
 display gdp_compare, co2_compare;
+
+
+if(%ssk%,
+	PS.l("res",g,r)$eite(g)  = PF.l("cap",r);
+	evom("cap",r)		 = evom("cap",r) - sum(g$eite(g),  V_FM.l("cap",g,r));
+	ks0("res",g,r)$eite(g)	 = V_FM.l("cap",g,r);
+	vfm("res",g,r)$eite(g)   = vfm("cap",g,r);
+	rtf("res",g,r)$eite(g)   = rtf("cap",g,r);
+	rtf0("res",g,r)$eite(g)  = rtf0("cap",g,r);
+	vfm("cap",g,r)$eite(g)   = 0;
+	rtf("cap",g,r)$eite(g)	 = 0;
+	rtf0("cap",g,r)$eite(g)	 = 0; 
+);
+
 
 
 if( (not %tax%),
@@ -524,8 +608,10 @@ option intensity:3:0:1;
 display intensity;
 
 
+$if %ds%==emf36_gtap10 $exit
 *	Base-year statistics
 parameter bmk(*,*,*)	Benchmark statistics;
+
 
 set label /'Refined petroleum products','Natural gas','Coal','Crude oil','Rest of economy', 'Pulp and paper', 'Non-metal minerals', 'Iron and steel'
 	   'Non-ferrous metals', 'Electricity', 'Chemicals', 'Consumption', 'Government', 'Investment'/;
@@ -555,7 +641,6 @@ bmk(gl(g,label),"Int")$bmk(gl,"Y") =  round(1000*bmk(gl,"CO2")/bmk(gl,"Y"),0);
 
 display bmk;
 
-
 execute_unload 'bmk_%bmkregion%.gdx' bmk;
 
 $onecho >gdxxrw.txt
@@ -563,12 +648,3 @@ par=bmk	  rng=bmk!a1 rdim=2 cdim=1
 $offecho
 *.execute 'gdxxrw i=bmk_%bmkregion%.gdx o=bmk_%bmkregion%.xlsx @gdxxrw.txt';
 
-parameter bmk_r benchmark regional data ;
-
-bmk_r(r,"gdp") = byr_gdp(r,"income") ;
-bmk_r(r,"ghg") = sum((i,g), eco2(i,g,r)) ;
-bmk_r(r,"ff_supply") = sum(xe, vom(xe,r)) ;
-bmk_r(r,"ff_export") = sum(xe, vxm(xe,r)) ;
-bmk_r(r,"ff_import") = sum(fe, vim(fe,r)) ;
-
-display bmk_r ;
