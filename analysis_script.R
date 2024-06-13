@@ -85,11 +85,11 @@ decomp %>%
   filter(co2p %in% c(25,250)) %>%
   ggplot(aes(x=name, y=value, fill=policy)) +
   geom_col(position=position_dodge()) +
-  facet_wrap(~co2p+region_implementing) +
+  facet_wrap(~co2p+region_implementing, scale = "free") +
   scale_fill_brewer(palette = "Set1") +
   scale_x_discrete(name=NULL, guide = guide_axis(n.dodge = 2)) +
   scale_y_continuous(name="Domestic welfare change (B$)", labels=scales::dollar_format()) +
-  theme_light()
+  theme_light() 
 ggsave("figures/welfare_decomp.png", width=8, height=4)  
 
 
