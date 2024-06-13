@@ -25,14 +25,16 @@ ggplot(fig1 %>% filter(fmt == "adj"), aes(x=region, y=value)) +
   labs(x="",
        y="Carbon content (kgCO2 per US$)")
 
-ggplot(fig2 %>% filter(fmt == "adj", item != "total", region %in% c("USA","EUR")), aes(x=region, y=value, fill=item)) +
+fig2 <- fig2 %>% mutate(item=factor(item, c("imported","indirect", "direct", "total"), ordered=TRUE))
+ggplot(fig2 %>% filter(fmt == "adj", item != "total", region %in% c("USA","EUR")), aes(x=region, y=value, fill=item, alpha=item)) +
   geom_col() +
   facet_wrap(~ sector, scales = "free") +
-  coord_flip() +
+#  coord_flip() +
   labs(x="",
        y="Carbon content (kgCO2 per US$)") +
   theme_bw() +
-  scale_fill_discrete(name="")
+  scale_fill_discrete(name="") +
+  scale_alpha_manual(name="", values=c("direct"=1,"indirect"=1,"imported"=0.5), guide="none")
 ggsave("figures/sector_intensity_compare.png", width=8, height=6)
 
 ggplot(fig3 %>% filter(fmt == "adj", item != "net") %>% pivot_wider(names_from=item, values_from = value), aes(x=exports, y=imports, colour=region)) +
