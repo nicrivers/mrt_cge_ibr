@@ -26,8 +26,9 @@ tot <- dat %>%
   summarise(welfare_dollars = sum(value)) %>%
   arrange(region_implementing,policy, co2p) %>%
   group_by(region_implementing,policy) %>%
-  mutate(tot_effect = - (welfare_dollars - first(welfare_dollars))) %>%
-  dplyr::select(region_implementing,policy, co2p, tot_effect)
+  mutate(tot_effect = - (welfare_dollars - first(welfare_dollars)),
+         tot_effect_percent = - (welfare_dollars - first(welfare_dollars)) / first(welfare_dollars)) %>%
+  dplyr::select(region_implementing,policy, co2p, tot_effect, tot_effect_percent)
 
 # leakage effect
 leakage <- dat %>%
@@ -217,6 +218,16 @@ tot %>%
   scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
   scale_y_continuous(name = "Terms of trade impact (B$)", labels=scales::dollar_format())
 ggsave("figures/tot.png", width=6, height=4)
+
+tot %>%
+  ggplot(aes(x=co2p, y=tot_effect_percent, colour=policy)) +
+  facet_wrap(~region_implementing) +
+  geom_line() +
+  theme_light() +
+  scale_color_brewer(palette = "Set1") +
+  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_y_continuous(name = "Terms of trade impact (%)", labels=scales::percent_format())
+ggsave("figures/tot_percent.png", width=6, height=4)
 
 # Domestic emissions
 dat %>%
