@@ -217,6 +217,21 @@ dat %>%
   facet_wrap(~sector+region_implementing)
 ggsave("figures/domestic_emissions_bysector.png", width=6, height=4)
 
+# EITE output
+dat %>%
+  filter(item %in% c("Output"),
+         sector == "EITE",
+         region == region_implementing,
+         scc == 250) %>%
+  pivot_wider(names_from=item, values_from=value) %>%
+  ggplot(aes(x=co2p, y=Output, colour=policy)) +
+  geom_line() +
+  theme_light() +
+  facet_wrap(~region_implementing) +
+  scale_color_brewer(palette = "Set1") +
+  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_y_continuous(name = "Domestic EITE output (%)")
+ggsave("figures/domestic_eite_output.png", width=6, height=4)
 
 dat %>%
   filter(item %in% c("CO2 price", "eb(bn$)"),
