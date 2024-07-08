@@ -116,16 +116,62 @@ decomp %>%
          direct_cost = diff_direct_cost) %>%
   mutate(total = dom_emit_benefit + direct_cost + leakage + tot) %>%
   pivot_longer(cols = tot:total) %>%
-  mutate(name = factor(name, levels=c("dom_emit_benefit","direct_cost","leakage","tot","total"))) %>%
+  mutate(name = factor(name, levels=c("dom_emit_benefit","direct_cost","leakage","tot","total"),
+                             labels=c("Benefit from emission reduction",
+                                      "Abatement cost",
+                                      "Leakage",
+                                      "Terms of trade",
+                                      "Total"))) %>%
   filter(co2p %in% c(25,250)) %>%
   ggplot(aes(x=name, y=value, fill=policy)) +
   geom_col(position=position_dodge()) +
   facet_wrap(~co2p+region_implementing) +
-  scale_fill_brewer(palette = "Set1") +
-  scale_x_discrete(name=NULL, guide = guide_axis(n.dodge = 2)) +
+  scale_fill_manual(values=RColorBrewer::brewer.pal(5,"Set1")[2:5]) +
+  scale_x_discrete(name=NULL) +
   scale_y_continuous(name="Domestic welfare change (B$)", labels=scales::dollar_format()) +
-  theme_light()
-ggsave("figures/welfare_decomp_relative_to_ls.png", width=8, height=4) 
+  theme_light() +
+  coord_flip() +
+  geom_hline(yintercept = 0)
+ggsave("figures/welfare_decomp_relative_to_ls.png", width=6, height=6) 
+
+# with policy on axis rather than decomposition
+decomp %>%
+  filter(policy == "LS") %>%
+  rename(tot_effect_ls = tot_effect,
+         welfare_leakage_ls = welfare_leakage,
+         direct_cost_ls = direct_cost,
+         welfare_emission_reduction_ls = welfare_emission_reduction) %>%
+  ungroup() %>%
+  dplyr::select(-policy) %>%
+  inner_join(decomp %>%
+               filter(policy != "LS")) %>%
+  mutate(diff_tot = tot_effect - tot_effect_ls,
+         diff_direct_cost = direct_cost - direct_cost_ls,
+         diff_emission_reduction = welfare_emission_reduction - welfare_emission_reduction_ls,
+         diff_leakage = welfare_leakage - welfare_leakage_ls) %>%
+  dplyr::select(region_implementing, co2p, policy, diff_tot, diff_direct_cost, diff_emission_reduction, diff_leakage) %>%
+  rename(tot=diff_tot,
+         dom_emit_benefit=diff_emission_reduction,
+         leakage=diff_leakage,
+         direct_cost = diff_direct_cost) %>%
+  mutate(total = dom_emit_benefit + direct_cost + leakage + tot) %>%
+  pivot_longer(cols = tot:total) %>%
+  mutate(name = factor(name, levels=c("dom_emit_benefit","direct_cost","leakage","tot","total"),
+                       labels=c("Benefit from emission reduction",
+                                "Abatement cost",
+                                "Leakage",
+                                "Terms of trade",
+                                "Total"))) %>%
+  filter(co2p %in% c(25,250)) %>%
+  ggplot(aes(x=policy, y=value, fill=name)) +
+  geom_col(position=position_dodge()) +
+  facet_wrap(~co2p+region_implementing) +
+  scale_fill_brewer(palette="Set1", name=NULL) +
+  scale_x_discrete(name=NULL) +
+  scale_y_continuous(name="Domestic welfare change (B$)", labels=scales::dollar_format()) +
+  theme_light() +
+  geom_hline(yintercept = 0)
+
 
 # Net welfare
 net_welfare <- dat %>% 
