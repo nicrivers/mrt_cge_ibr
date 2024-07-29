@@ -2,6 +2,9 @@ library(tidyverse)
 
 dat <- read_csv("multi_scen.csv")
 
+# max price
+max_pco2 = 250
+
 # Rename policies
 dat <- dat %>%
   mutate(policy = case_when(policy == "LSR" ~ "LS",
@@ -211,7 +214,8 @@ dat %>%
   filter(item %in% c("CO2 price", "netwelf_globalscc"),
          sector == "all",
          region == region_implementing,
-         scc == 250) %>%
+         scc == 250,
+         co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
   ggplot(aes(x=co2p, y=netwelf_globalscc, colour=policy)) +
   geom_line() +
@@ -249,7 +253,8 @@ ggsave("figures/optimal_policy.png", width=6, height=4)
 
 # Leakage
 pd %>%
-  filter(scc == 250) %>%
+  filter(scc == 250,
+         co2p <= max_pco2) %>%
   ggplot(aes(x=co2p, y=lk, colour=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
@@ -262,6 +267,7 @@ ggsave("figures/leakage.png", width=6, height=4)
 
 # Terms of trade
 tot %>%
+  filter(co2p <= max_pco2) %>%
   ggplot(aes(x=co2p, y=tot_effect, colour=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
@@ -272,6 +278,7 @@ tot %>%
 ggsave("figures/tot.png", width=6, height=4)
 
 tot %>%
+  filter(co2p <= max_pco2) %>%
   ggplot(aes(x=co2p, y=tot_effect_percent, colour=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
@@ -287,6 +294,7 @@ dat %>%
          sector == "all",
          region == region_implementing,
          scc == 250) %>%
+  filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
   ggplot(aes(x=co2p, y=Emissions, colour=policy)) +
   geom_line() +
@@ -304,6 +312,7 @@ dat %>%
          sector %in% c("EITE", "non-EITE"),
          region == region_implementing,
          scc == 250) %>%
+  filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
   ggplot(aes(x=co2p, y=Emissions, colour=policy)) +
   geom_line() +
@@ -320,6 +329,7 @@ dat %>%
          sector == "EITE",
          region == region_implementing,
          scc == 250) %>%
+  filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
   ggplot(aes(x=co2p, y=Output, colour=policy)) +
   geom_line() +
