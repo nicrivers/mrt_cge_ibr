@@ -13,8 +13,13 @@ dat <- dat %>%
 
 # lower case
 dat <- dat %>%
-  mutate(region_implementing = tolower(region_implementing),
-         region = tolower(region))
+  mutate(region_implementing = toupper(region_implementing),
+         region = toupper(region)) %>%
+  # Replace EUR with EU
+  mutate(region = case_when(region == "EUR" ~ "EU",
+                            region != "EUR" ~ region)) %>%
+  mutate(region_implementing = case_when(region_implementing == "EUR" ~ "EU",
+                            region_implementing != "EUR" ~ region_implementing))
 
 # Decomposition of welfare from policy implementation
 # terms of trade effect
@@ -68,7 +73,8 @@ dom_emit_benefit <- dat %>%
 
 # total
 decomp <- inner_join(
-  tot, leakage
+  tot %>% select(-tot_effect_percent), 
+  leakage
 ) %>%
   inner_join(direct_cost) %>%
   inner_join(dom_emit_benefit) %>%
@@ -178,7 +184,7 @@ net_welfare <- dat %>%
   filter(item == "netwelf") %>%
   dplyr::select(region_implementing,policy, nw=value, co2p, scc)
 leakage <- dat %>% 
-  filter(item == "Leakage", region == "all") %>%
+  filter(item == "Leakage", region == "ALL") %>%
   dplyr::select(region_implementing,policy, lk=value, co2p, scc)
 pd <- inner_join(net_welfare, leakage) 
 
