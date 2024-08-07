@@ -125,22 +125,26 @@ decomp %>%
          direct_cost = diff_direct_cost) %>%
   mutate(total = dom_emit_benefit + direct_cost + leakage + tot) %>%
   pivot_longer(cols = tot:total) %>%
-  mutate(name = factor(name, levels=c("dom_emit_benefit","direct_cost","leakage","tot","total"),
-                             labels=c("Benefit from emission reduction",
-                                      "Abatement cost",
+  mutate(name = factor(name, levels=c("total","leakage","tot","dom_emit_benefit","direct_cost"),
+                             labels=c("Total",
                                       "Leakage",
                                       "Terms of trade",
-                                      "Total"))) %>%
+                             "Domestic emissions",
+                                      "Abatement"
+                                      
+                                      ))) %>%
   filter(co2p %in% c(25,250)) %>%
   ggplot(aes(x=name, y=value, fill=policy)) +
-  geom_col(position=position_dodge()) +
+  geom_col(position=position_dodge(), width=0.5) +
   facet_wrap(~co2p+region_implementing) +
   scale_fill_manual(values=RColorBrewer::brewer.pal(5,"Set1")[2:5]) +
   scale_x_discrete(name=NULL) +
   scale_y_continuous(name="Domestic welfare change (B$)", labels=scales::dollar_format()) +
   theme_light() +
   coord_flip() +
-  geom_hline(yintercept = 0)
+  geom_hline(yintercept = 0) +
+  theme(panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank())
 ggsave("figures/welfare_decomp_relative_to_ls.png", width=6, height=6) 
 
 # with policy on axis rather than decomposition
@@ -184,7 +188,7 @@ decomp %>%
 
 # Net welfare
 net_welfare <- dat %>% 
-  filter(item == "netwelf") %>%
+  filter(item == "netwelf_globalscc") %>%
   dplyr::select(region_implementing,policy, nw=value, co2p, scc)
 leakage <- dat %>% 
   filter(item == "Leakage", region == "ALL") %>%
@@ -195,12 +199,12 @@ pd <- inner_join(net_welfare, leakage)
 
 
 dat %>%
-  filter(item %in% c("CO2 price", "netwelf"),
+  filter(item %in% c("CO2 price", "netwelf_globalscc"),
          sector == "all",
          region == region_implementing,
          scc == 250) %>%
   pivot_wider(names_from=item, values_from=value) %>%
-  ggplot(aes(x=co2p, y=netwelf, colour=policy)) +
+  ggplot(aes(x=co2p, y=netwelf_globalscc, colour=policy)) +
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
@@ -221,10 +225,43 @@ dat %>%
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Change in domestic welfare (%)") +
   facet_wrap(~ region_implementing)
 ggsave("figures/domestic_welfare.png", width=6, height=4)
+
+# Relative to lump sum
+pol_col <- scales::brewer_pal(palette="Set1")(5)
+dat %>%
+  filter(item %in% c("CO2 price", "netwelf_globalscc"),
+         sector == "all",
+         region == region_implementing,
+         scc == 250,
+         co2p <= max_pco2,
+         policy != "LS") %>%
+  pivot_wider(names_from=item, values_from=value) %>%
+  inner_join(
+    dat %>%
+      filter(item %in% c("CO2 price", "netwelf_globalscc"),
+             sector == "all",
+             region == region_implementing,
+             scc == 250,
+             co2p <= max_pco2,
+             policy == "LS") %>%
+      select(-policy) %>%
+      pivot_wider(names_from=item, values_from=value) %>%
+      rename(ls_welfare = netwelf_globalscc)
+  ) %>%
+  mutate(diff_welfare = netwelf_globalscc - ls_welfare) %>%
+  ggplot(aes(x=co2p, y=diff_welfare, colour=policy)) +
+  geom_line() +
+  theme_light() +
+  scale_color_manual(values = pol_col[2:5]) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
+  scale_y_continuous(name = "Change in domestic welfare relative to lump sum (%)") +
+  facet_wrap(~ region_implementing)
+ggsave("figures/domestic_welfare_relative_ls.png", width=6, height=4)
+  
 
 # Ranking table
 dat %>%
@@ -247,8 +284,8 @@ dat %>%
   facet_wrap(~region_implementing) +
   scale_fill_brewer(name="policy",palette = "Set1", drop=FALSE) +
   theme_light() +
-  scale_x_continuous(name="Social cost of carbon", labels=scales::dollar_format(suffix="/t")) +
-  scale_y_continuous(name="Domestic carbon price", labels=scales::dollar_format(suffix="/t"))
+  scale_x_continuous(name="Social cost of carbon ($/t CO2)") +
+  scale_y_continuous(name="Domestic carbon price ($/t CO2)")
 ggsave("figures/optimal_policy.png", width=6, height=4)
 
 # Leakage
@@ -260,7 +297,7 @@ pd %>%
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Leakage rate (%)")
 ggsave("figures/leakage.png", width=6, height=4)
 
@@ -273,7 +310,7 @@ tot %>%
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Terms of trade impact (B$)", labels=scales::dollar_format())
 ggsave("figures/tot.png", width=6, height=4)
 
@@ -284,7 +321,7 @@ tot %>%
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Terms of trade impact (%)", labels=scales::percent_format())
 ggsave("figures/tot_percent.png", width=6, height=4)
 
@@ -301,7 +338,7 @@ dat %>%
   theme_light() +
   facet_wrap(~region_implementing) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Domestic emission reduction (%)")
 ggsave("figures/domestic_emissions.png", width=6, height=4)
 
@@ -318,7 +355,7 @@ dat %>%
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Domestic emission reduction (%)") +
   facet_wrap(~sector+region_implementing)
 ggsave("figures/domestic_emissions_bysector.png", width=6, height=4)
@@ -336,7 +373,7 @@ dat %>%
   theme_light() +
   facet_wrap(~region_implementing) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_continuous(name = "Domestic carbon price", labels=scales::dollar_format(suffix = "/t")) +
+  scale_x_continuous(name = "Domestic carbon price ($/t CO2)", limits=c(0,NA)) +
   scale_y_continuous(name = "Domestic EITE output (%)")
 ggsave("figures/domestic_eite_output.png", width=6, height=4)
 
@@ -381,9 +418,33 @@ pd %>% filter(policy %in% c("A","O")) %>%
   geom_contour(breaks = c(-1,0,1), colour="black") +
   theme_light() +
   facet_wrap(~region_implementing) +
-  scale_x_continuous(name="Social cost of carbon", labels=scales::dollar_format(suffix="/t")) +
-  scale_y_continuous(name="Domestic carbon price", labels=scales::dollar_format(suffix="/t")) +
+  scale_x_continuous(name="Social cost of carbon ($/t CO2)") +
+  scale_y_continuous(name="Domestic carbon price ($/t CO2)") +
   annotate(geom="text", x=500,y=0, label="If SCC>>pCO2\nABR dominates", hjust=1, vjust=-0.5) +
   annotate(geom="text", x=500,y=325, label="If SCC<=pCO2\nOBR dominates", hjust=1) 
 ggsave("figures/OBRvsABR.png", width=8, height=6)
-                    
+
+# Output-based rebating compared to best alternative
+pd %>% filter(policy == "O") %>%
+  inner_join(
+    pd %>%
+      filter(policy != "O") %>%
+      group_by(region_implementing, scc, co2p) %>%
+      select(-lk) %>%
+      summarise(welf_non_o=max(nw))
+  ) %>%
+  group_by(region_implementing,scc, co2p) %>%
+  # Only keep where scc >= co2p
+  filter(scc >= co2p) %>%
+  select(-lk) %>%
+  distinct() %>%
+  mutate(diff = welf_non_o-nw) %>%
+  ggplot(aes(x=scc, y=co2p, z=diff)) +
+  geom_raster(aes(fill=-diff)) +
+  scale_fill_gradient2(name="Welfare\ndifference\nOBR to best\nalternative") +
+  geom_contour(breaks = c(-1,0,1), colour="black") +
+  theme_light() +
+  facet_wrap(~region_implementing) +
+  scale_x_continuous(name="Social cost of carbon ($/t CO2)") +
+  scale_y_continuous(name="Domestic carbon price ($/t CO2)") 
+ggsave("figures/OBRvsothers.png", width=8, height=6)                    
