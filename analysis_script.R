@@ -1,4 +1,5 @@
 library(tidyverse)
+library(ggpattern)
 
 dat <- read_csv("multi_scen.csv")
 
@@ -129,12 +130,12 @@ decomp %>%
                              labels=c("Total",
                                       "Leakage",
                                       "Terms of trade",
-                             "Domestic emissions",
-                                      "Abatement"
+                             "Domestic emissions reductions",
+                                      "Abatement costs"
                                       
                                       ))) %>%
   filter(co2p %in% c(25,250)) %>%
-  ggplot(aes(x=name, y=value, fill=policy)) +
+  ggplot(aes(x=name, y=value, fill=polic)) +
   geom_col(position=position_dodge(), width=0.5) +
   facet_wrap(~co2p+region_implementing) +
   scale_fill_manual(values=RColorBrewer::brewer.pal(5,"Set1")[2:5]) +
@@ -280,7 +281,7 @@ dat %>%
             fourth = nth(policy,4), 
             fifth = nth(policy, 5)) %>%
   ggplot(aes(x=scc, y=co2p, fill=best, label=best)) +
-  geom_raster() +
+  geom_raster(show.legend=TRUE) +
   facet_wrap(~region_implementing) +
   scale_fill_brewer(name="policy",palette = "Set1", drop=FALSE) +
   theme_light() +
