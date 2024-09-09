@@ -1,5 +1,4 @@
 library(tidyverse)
-library(ggpattern)
 
 dat <- read_csv("multi_scen.csv")
 
@@ -135,7 +134,7 @@ decomp %>%
                                       
                                       ))) %>%
   filter(co2p %in% c(25,250)) %>%
-  ggplot(aes(x=name, y=value, fill=polic)) +
+  ggplot(aes(x=name, y=value, fill=policy)) +
   geom_col(position=position_dodge(), width=0.5) +
   facet_wrap(~co2p+region_implementing) +
   scale_fill_manual(values=RColorBrewer::brewer.pal(5,"Set1")[2:5]) +
