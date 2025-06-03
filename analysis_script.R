@@ -144,7 +144,8 @@ decomp %>%
   coord_flip() +
   geom_hline(yintercept = 0) +
   theme(panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_blank())
+        panel.grid.major.y = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE))
 ggsave("figures/welfare_decomp_relative_to_ls.png", width=6, height=6) 
 
 # with policy on axis rather than decomposition
@@ -221,7 +222,7 @@ dat %>%
          scc == 250,
          co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
-  ggplot(aes(x=co2p, y=netwelf_globalscc, colour=policy)) +
+  ggplot(aes(x=co2p, y=netwelf_globalscc, colour=policy, linetype=policy)) +
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
@@ -253,7 +254,7 @@ dat %>%
       rename(ls_welfare = netwelf_globalscc)
   ) %>%
   mutate(diff_welfare = netwelf_globalscc - ls_welfare) %>%
-  ggplot(aes(x=co2p, y=diff_welfare, colour=policy)) +
+  ggplot(aes(x=co2p, y=diff_welfare, colour=policy, linetype=policy)) +
   geom_line() +
   theme_light() +
   scale_color_manual(values = pol_col[2:5]) +
@@ -292,7 +293,7 @@ ggsave("figures/optimal_policy.png", width=6, height=4)
 pd %>%
   filter(scc == 250,
          co2p <= max_pco2) %>%
-  ggplot(aes(x=co2p, y=lk, colour=policy)) +
+  ggplot(aes(x=co2p, y=lk, colour=policy, linetype=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
   theme_light() +
@@ -305,7 +306,7 @@ ggsave("figures/leakage.png", width=6, height=4)
 # Terms of trade
 tot %>%
   filter(co2p <= max_pco2) %>%
-  ggplot(aes(x=co2p, y=tot_effect, colour=policy)) +
+  ggplot(aes(x=co2p, y=tot_effect, colour=policy, linetype=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
   theme_light() +
@@ -316,7 +317,7 @@ ggsave("figures/tot.png", width=6, height=4)
 
 tot %>%
   filter(co2p <= max_pco2) %>%
-  ggplot(aes(x=co2p, y=tot_effect_percent, colour=policy)) +
+  ggplot(aes(x=co2p, y=tot_effect_percent, colour=policy, linetype=policy)) +
   facet_wrap(~region_implementing) +
   geom_line() +
   theme_light() +
@@ -333,7 +334,7 @@ dat %>%
          scc == 250) %>%
   filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
-  ggplot(aes(x=co2p, y=Emissions, colour=policy)) +
+  ggplot(aes(x=co2p, y=Emissions, colour=policy, linetype=policy)) +
   geom_line() +
   theme_light() +
   facet_wrap(~region_implementing) +
@@ -351,7 +352,7 @@ dat %>%
          scc == 250) %>%
   filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
-  ggplot(aes(x=co2p, y=Emissions, colour=policy)) +
+  ggplot(aes(x=co2p, y=Emissions, colour=policy, linetype=policy)) +
   geom_line() +
   theme_light() +
   scale_color_brewer(palette = "Set1") +
@@ -368,7 +369,7 @@ dat %>%
          scc == 250) %>%
   filter(co2p <= max_pco2) %>%
   pivot_wider(names_from=item, values_from=value) %>%
-  ggplot(aes(x=co2p, y=Output, colour=policy)) +
+  ggplot(aes(x=co2p, y=Output, colour=policy, linetype=policy)) +
   geom_line() +
   theme_light() +
   facet_wrap(~region_implementing) +
